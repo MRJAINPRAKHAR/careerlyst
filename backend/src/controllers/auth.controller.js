@@ -345,11 +345,14 @@ const getMe = async (req, res) => {
 const updateResume = async (req, res) => {
   try {
     if (!req.file) {
+      console.log("> [DEBUG] No file found in updateResume request body:", req.body);
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    console.log("> [DEBUG] req.file content in updateResume:", JSON.stringify(req.file, null, 2));
     const userId = req.user.id;
     const resumeUrl = req.file.path; // Cloudinary URL
+    if (!resumeUrl) throw new Error("Cloudinary did not return a URL during profile update");
 
     await pool.query("UPDATE users SET resume_url = ? WHERE id = ?", [resumeUrl, userId]);
 

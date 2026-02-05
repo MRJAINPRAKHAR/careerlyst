@@ -22,24 +22,24 @@ const parseResume = async (req, res) => {
 
     // --- 1.5 SAVE RESUME URL TO DB ---
     const userId = req.user.id;
+    console.log("> [DEBUG] req.file content:", JSON.stringify(req.file, null, 2));
+
     const resumeUrl = req.file.path; // Cloudinary URL
+    if (!resumeUrl) throw new Error("Cloudinary did not return a URL");
 
     // Update the user's profile with the resume URL immediately
     await pool.query("UPDATE users SET resume_url = ? WHERE id = ?", [resumeUrl, userId]);
     console.log(`> [DB] Resume URL saved for User ID: ${userId}`);
 
     const axios = require('axios');
-    let dataBuffer = req.file.buffer;
+    let dataBuffer = null;
 
-    if (!dataBuffer && req.file.path) {
-      if (req.file.path.startsWith('http')) {
-        // Handle Cloudinary URL
-        const response = await axios.get(req.file.path, { responseType: 'arraybuffer' });
-        dataBuffer = Buffer.from(response.data, 'binary');
-      } else {
-        // Handle local path fallback
-        dataBuffer = fs.readFileSync(req.file.path);
-      }
+    if (req.file.path && req.file.path.startsWith('http')) {
+      console.log("> [DEBUG] Downloading from Cloudinary:", req.file.path);
+      const response = await axios.get(req.file.path, { responseType: 'arraybuffer' });
+      dataBuffer = Buffer.from(response.data);
+    } else if (req.file.path) {
+      dataBuffer = fs.readFileSync(req.file.path);
     }
 
     if (!dataBuffer) {

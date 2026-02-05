@@ -62,16 +62,21 @@ export default function AICoach({ profile, onUsageUpdate }) {
 
     try {
       const res = await api.post("/api/ai/resume-score", formData);
-      // Backend now returns { analysis: {...}, usage: {...} }
-      setResult(res.data.analysis);
+      // Backend returns { analysis: {...}, usage: {...} }
+      const newAnalysis = res.data.analysis;
+      setResult(newAnalysis);
 
-      // Update parent state immediately
+      // Update parent state immediately with BOTH usage and the analysis result
       if (onUsageUpdate && res.data.usage) {
-        onUsageUpdate(res.data.usage);
+        onUsageUpdate({
+          ...profile.usage,
+          ...res.data.usage,
+          lastAnalysis: newAnalysis
+        });
       }
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.message || "Failed to analyze resume.";
+      const msg = err.response?.data?.message || "AI Analysis unavailable. Check your connection or daily limit.";
       setError(msg);
     } finally {
       setAnalyzing(false);
@@ -127,6 +132,22 @@ export default function AICoach({ profile, onUsageUpdate }) {
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 NEW SCAN
               </button>
+            )}
+            {/* ERROR ALERT */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3"
+              >
+                <div className="p-1 bg-red-500/20 rounded-lg">
+                  <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-red-400 uppercase tracking-wider mb-1">Analysis Failed</h4>
+                  <p className="text-[11px] text-red-300/80 leading-relaxed font-mono">{error}</p>
+                </div>
+              </motion.div>
             )}
           </div>
         </div>

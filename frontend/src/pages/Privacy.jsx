@@ -34,7 +34,7 @@ export default function Privacy() {
                         <div>
                             <h2 className="text-xl font-bold text-white mb-4">1. Introduction</h2>
                             <p className="leading-relaxed">
-                                Welcome to Careerlyst. We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you use our job tracking platform.
+                                Welcome to Careerlyst (https://careerlyst.in). We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you use our job tracking platform.
                             </p>
                         </div>
 

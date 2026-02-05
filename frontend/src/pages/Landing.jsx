@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import InteractiveRobotSpline from "../components/InteractiveRobotSpline";
 import CursorGlow from "../components/CursorGlow";
@@ -428,8 +428,8 @@ export default function Landing() {
           <div className="mt-10 border-t border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-600">
             <p>&copy; {new Date().getFullYear()} Prakhar Jain. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <button onClick={() => navigate("/privacy")} className="hover:text-white transition-colors">Privacy Policy</button>
-              <button onClick={() => navigate("/terms")} className="hover:text-white transition-colors">Terms of Service</button>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>

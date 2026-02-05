@@ -261,18 +261,14 @@ export default function Profile({ profile }) {
               >
                 {profile.resumeUrl ? (
                   <div className="w-full h-full relative group">
-                    <img
-                      src={profile.resumeUrl.includes('cloudinary')
-                        ? profile.resumeUrl.replace(/\/upload\//, '/upload/w_1000,pg_1/').replace(/\.pdf$/i, '.jpg')
-                        : `https://docs.google.com/gview?url=${encodeURIComponent(profile.resumeUrl)}&embedded=true`
-                      }
+                    <iframe
+                      src={profile.resumeUrl}
                       className="w-full h-full object-contain bg-slate-100 rounded-xl transition-opacity group-hover:opacity-60"
-                      alt="Resume Preview"
-                      loading="lazy"
+                      title="Resume Preview"
                     />
                     <div className="hidden absolute inset-0 flex items-center justify-center bg-slate-900/50 rounded-xl flex-col gap-2 transition-all">
                       <FileText size={40} className="text-white opacity-80" />
-                      <span className="text-[10px] text-white opacity-80 font-bold uppercase tracking-wider text-center px-4">Click to View Image</span>
+                      <span className="text-[10px] text-white opacity-80 font-bold uppercase tracking-wider text-center px-4">Click to View Full PDF</span>
                     </div>
                   </div>
                 ) : (

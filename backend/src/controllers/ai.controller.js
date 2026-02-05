@@ -12,42 +12,52 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Helper to get PDF buffer from either local or remote URL
 const getPdfBuffer = async (resumeUrl) => {
-    if (!resumeUrl) throw new Error("No resume URL found. Please upload your resume first.");
+    if (!resumeUrl) throw new Error("No resume found. Please upload your resume in your Profile.");
 
-    console.log(`> [AI] Processing resume: ${resumeUrl}`);
+    // Cleanup URL
+    const cleanUrl = resumeUrl.trim().replace(/^["']|["']$/g, '');
+    console.log(`> [AI] Processing resume: ${cleanUrl}`);
 
-    // Detect if URL is pointing to THIS server (localhost/127.0.0.1)
-    const isLoopback = resumeUrl.includes('localhost') || resumeUrl.includes('127.0.0.1');
-    const isRemote = (resumeUrl.startsWith('http') || resumeUrl.startsWith('https://')) && !isLoopback;
+    // Robust loopback detection
+    const backendHost = process.env.BACKEND_URL ? new URL(process.env.BACKEND_URL).host : '';
+    const isLoopback = cleanUrl.includes('localhost') ||
+        cleanUrl.includes('127.0.0.1') ||
+        (backendHost && cleanUrl.includes(backendHost));
+
+    const isRemote = (cleanUrl.startsWith('http') || cleanUrl.startsWith('https://')) && !isLoopback;
 
     if (isRemote) {
         console.log(`> [AI] Fetching remote PDF via axios...`);
         try {
-            const response = await axios.get(resumeUrl, {
+            const response = await axios.get(cleanUrl, {
                 responseType: 'arraybuffer',
-                timeout: 30000, // 30s timeout
+                timeout: 30000,
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
             });
             return Buffer.from(response.data);
         } catch (err) {
-            console.error(`> [AI] Fetch Error: ${err.message}`);
-            throw new Error(`Connection Error: Unable to fetch PDF from cloud storage (${err.message}).`);
+            console.error(`> [AI] Fetch Error: ${err.message} URL: ${cleanUrl}`);
+            throw new Error(`Cloud storage fetch failed (${err.message}). Is the link valid? Link preview: ${cleanUrl.substring(0, 40)}...`);
         }
     } else {
-        // Local File Handling (Bypass axios for localhost or relative paths)
-        console.log(`> [AI] Reading local PDF from filesystem...`);
-        const filename = resumeUrl.includes('uploads')
-            ? resumeUrl.split('uploads').pop().replace(/^[\\\/]+/, '')
-            : resumeUrl;
+        // Local File Handling
+        console.log(`> [AI] Reading local PDF...`);
+        const filename = cleanUrl.includes('uploads')
+            ? cleanUrl.split('uploads').pop().replace(/^[\\\/]+/, '')
+            : cleanUrl;
 
         const filePath = path.resolve(__dirname, '../../uploads', filename);
         console.log(`> [AI] Resolved local path: ${filePath}`);
 
         if (!fs.existsSync(filePath)) {
             console.error(`> [AI] Local File Missing: ${filePath}`);
-            throw new Error(`File Error: Your saved resume is missing from the server. Please re-upload it in your Profile.`);
+
+            if (cleanUrl.includes('onrender.com') || cleanUrl.includes('localhost') || cleanUrl.includes('127.0.0.1')) {
+                throw new Error("Your saved resume is on temporary storage which has expired. Please go to Profile and RE-UPLOAD your resume to save it permanently in the cloud.");
+            }
+            throw new Error("Resume not found. Please re-upload it in your Profile.");
         }
         return fs.readFileSync(filePath);
     }

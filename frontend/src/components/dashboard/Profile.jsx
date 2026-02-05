@@ -258,10 +258,11 @@ export default function Profile({ profile }) {
               >
                 {profile.resumeUrl ? (
                   <iframe
-                    src={profile.resumeUrl.includes('cloudinary') && !profile.resumeUrl.toLowerCase().endsWith('.pdf')
-                      ? `${profile.resumeUrl}.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH`
-                      : `${profile.resumeUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`
-                    }
+                    src={`https://docs.google.com/gview?url=${encodeURIComponent(
+                      profile.resumeUrl.includes('cloudinary') && !profile.resumeUrl.toLowerCase().endsWith('.pdf')
+                        ? `${profile.resumeUrl}.pdf`
+                        : profile.resumeUrl
+                    )}&embedded=true`}
                     className="w-full h-full border-none bg-slate-900"
                     title="Resume"
                   />

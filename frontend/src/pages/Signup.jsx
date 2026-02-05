@@ -316,7 +316,7 @@ export default function Signup() {
                     <div className="transform scale-[0.85] sm:scale-100 origin-center">
                       <ReCAPTCHA
                         ref={recaptchaRef}
-                        sitekey="6Le-llgsAAAAAHbMWFDo6hAmiZ3wT2Xvur-7-0pA"
+                        sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6Le-llgsAAAAAHbMWFDo6hAmiZ3wT2Xvur-7-0pA"}
                         onChange={setCaptchaVal}
                         theme="dark"
                       />

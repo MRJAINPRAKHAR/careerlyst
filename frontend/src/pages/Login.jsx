@@ -221,7 +221,7 @@ export default function Login() {
                   <div className="overflow-hidden rounded-md border border-white/5">
                     <ReCAPTCHA
                       ref={recaptchaRef}
-                      sitekey="6Le-llgsAAAAAHbMWFDo6hAmiZ3wT2Xvur-7-0pA"
+                      sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6Le-llgsAAAAAHbMWFDo6hAmiZ3wT2Xvur-7-0pA"}
                       onChange={setCaptchaVal}
                       theme="dark"
                     />

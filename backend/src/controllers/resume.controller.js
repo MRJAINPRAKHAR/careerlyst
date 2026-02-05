@@ -21,19 +21,25 @@ const parseResume = async (req, res) => {
     console.log(`> [SYS] ${new Date().toISOString()} - Initializing PDF Extraction...`);
 
     // --- 1.5 SAVE RESUME URL TO DB ---
-    const userId = req.user.id; // From verifyToken middleware
-    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
-    const resumeUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    const userId = req.user.id;
+    const resumeUrl = req.file.path; // Cloudinary URL
 
     // Update the user's profile with the resume URL immediately
     await pool.query("UPDATE users SET resume_url = ? WHERE id = ?", [resumeUrl, userId]);
     console.log(`> [DB] Resume URL saved for User ID: ${userId}`);
 
-    // --- 2. CRITICAL FIX: Handle Disk Storage ---
-    // If req.file.buffer is undefined (DiskStorage), read from req.file.path
+    const axios = require('axios');
     let dataBuffer = req.file.buffer;
+
     if (!dataBuffer && req.file.path) {
-      dataBuffer = fs.readFileSync(req.file.path);
+      if (req.file.path.startsWith('http')) {
+        // Handle Cloudinary URL
+        const response = await axios.get(req.file.path, { responseType: 'arraybuffer' });
+        dataBuffer = Buffer.from(response.data, 'binary');
+      } else {
+        // Handle local path fallback
+        dataBuffer = fs.readFileSync(req.file.path);
+      }
     }
 
     if (!dataBuffer) {

@@ -12,27 +12,33 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Helper to get PDF buffer from either local or remote URL
 const getPdfBuffer = async (resumeUrl) => {
-    if (!resumeUrl) throw new Error("No resume URL provided");
+    if (!resumeUrl) throw new Error("No resume URL found in your profile. Please re-upload your resume.");
 
-    if (resumeUrl.startsWith('http')) {
+    console.log(`> [AI] Attempting to fetch resume from: ${resumeUrl}`);
+
+    if (resumeUrl.startsWith('http') || resumeUrl.startsWith('https://')) {
         try {
             const response = await axios.get(resumeUrl, {
                 responseType: 'arraybuffer',
-                timeout: 10000 // 10s timeout
+                timeout: 15000 // 15s timeout
             });
             return Buffer.from(response.data);
         } catch (err) {
-            console.error("Cloudinary Fetch Error:", err.message);
-            throw new Error("Failed to fetch resume from Cloudinary. Please try uploading again.");
+            console.error(`> [AI] Cloudinary Fetch Error: ${err.message}`);
+            throw new Error(`Cloudinary Error: Unable to fetch PDF (${err.message}). Is the URL accessible?`);
         }
     } else {
-        // Handle both 'uploads/filename.pdf' and '/uploads/filename.pdf'
-        const filename = resumeUrl.replace(/^.*uploads\//, '');
+        // Handle local paths carefully
+        const filename = resumeUrl.includes('uploads')
+            ? resumeUrl.split('uploads').pop().replace(/^[\\\/]+/, '')
+            : resumeUrl;
+
         const filePath = path.resolve(__dirname, '../../uploads', filename);
+        console.log(`> [AI] Resolved local path: ${filePath}`);
 
         if (!fs.existsSync(filePath)) {
-            console.error("Local File Missing:", filePath);
-            throw new Error("Resume file not found on server.");
+            console.error(`> [AI] Local File Missing: ${filePath}`);
+            throw new Error(`File Error: Your saved resume (local) is missing from the server. Please re-upload it.`);
         }
         return fs.readFileSync(filePath);
     }
@@ -41,22 +47,25 @@ const getPdfBuffer = async (resumeUrl) => {
 exports.analyzeResume = async (req, res) => {
     try {
         const userId = req.user.id;
+        console.log(`> [AI] Analysis started for User ID: ${userId}`);
 
         const [userRows] = await db.query(
-            "SELECT daily_resume_scans, last_resume_scan_date FROM users WHERE id = ?",
+            "SELECT daily_resume_scans, last_resume_scan_date, resume_url FROM users WHERE id = ?",
             [userId]
         );
 
-        if (userRows.length > 0) {
-            const user = userRows[0];
-            const today = new Date().toLocaleDateString('en-CA');
-            const lastDate = user.last_resume_scan_date ? new Date(user.last_resume_scan_date).toLocaleDateString('en-CA') : null;
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: "User not found in database." });
+        }
 
-            if (lastDate === today && user.daily_resume_scans >= 3) {
-                return res.status(403).json({
-                    message: "Daily scan limit reached (3/3). Please try again tomorrow."
-                });
-            }
+        const user = userRows[0];
+        const today = new Date().toLocaleDateString('en-CA');
+        const lastDate = user.last_resume_scan_date ? new Date(user.last_resume_scan_date).toLocaleDateString('en-CA') : null;
+
+        if (lastDate === today && user.daily_resume_scans >= 3) {
+            return res.status(403).json({
+                message: "Daily scan limit reached (3/3). Please try again tomorrow."
+            });
         }
 
         let dataBuffer;
@@ -64,35 +73,36 @@ exports.analyzeResume = async (req, res) => {
         let tempFilePath = null;
 
         if (req.file) {
+            console.log(`> [AI] Processing newly uploaded file: ${req.file.originalname}`);
             tempFilePath = req.file.path;
             dataBuffer = fs.readFileSync(tempFilePath);
             isTempFile = true;
         } else {
-            const [rows] = await db.query("SELECT resume_url FROM users WHERE id = ?", [userId]);
-
-            if (rows.length === 0 || !rows[0].resume_url) {
-                return res.status(400).json({ message: "No resume found. Please upload one." });
+            console.log(`> [AI] Processing saved resume: ${user.resume_url}`);
+            if (!user.resume_url) {
+                return res.status(400).json({ message: "No saved resume found. Please upload one first." });
             }
 
             try {
-                dataBuffer = await getPdfBuffer(rows[0].resume_url);
+                dataBuffer = await getPdfBuffer(user.resume_url);
             } catch (err) {
-                return res.status(404).json({ message: err.message });
+                console.error(`> [AI] Buffer Error: ${err.message}`);
+                return res.status(400).json({ message: err.message });
             }
         }
 
+        console.log(`> [AI] Parsing PDF buffer...`);
         let pdfData;
         try {
             pdfData = await pdfParse(dataBuffer);
         } catch (err) {
-            console.error("PDF Parse Error:", err);
-            return res.status(400).json({ message: "Failed to read PDF content. Please ensure it's a valid PDF." });
+            console.error(`> [AI] PDF Parse Failure: ${err.message}`);
+            return res.status(400).json({ message: "PDF Error: Could not parse text. Is it a valid PDF?" });
         }
 
         const resumeText = pdfData.text;
-
         if (!resumeText || resumeText.trim().length < 50) {
-            return res.status(400).json({ message: "Resume content is too short or unreadable. Try a different PDF format." });
+            return res.status(400).json({ message: "Content Error: Resume text is too short or empty. Use a text-based PDF." });
         }
 
         const { jobDescription } = req.body;

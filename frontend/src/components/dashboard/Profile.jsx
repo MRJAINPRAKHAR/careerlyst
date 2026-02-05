@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../api/client";
+import { Briefcase, FileText } from "lucide-react";
 
 export default function Profile({ profile }) {
   if (!profile) return null;
@@ -257,17 +258,30 @@ export default function Profile({ profile }) {
                 className={`relative w-full aspect-[1/1.4] bg-white rounded-xl overflow-hidden cursor-pointer group shadow-xl transition-all hover:scale-[1.02] ${!profile.resumeUrl ? 'opacity-50 grayscale pointer-events-none' : ''}`}
               >
                 {profile.resumeUrl ? (
-                  <iframe
-                    src={`https://docs.google.com/gview?url=${encodeURIComponent(
-                      profile.resumeUrl.includes('cloudinary') && !profile.resumeUrl.toLowerCase().endsWith('.pdf')
-                        ? `${profile.resumeUrl}.pdf`
-                        : profile.resumeUrl
-                    )}&embedded=true`}
-                    className="w-full h-full border-none bg-slate-900"
-                    title="Resume"
-                  />
+                  <div className="w-full h-full relative group">
+                    <img
+                      src={profile.resumeUrl.includes('cloudinary')
+                        ? profile.resumeUrl.replace(/\/upload\//, '/upload/w_800,f_auto,q_auto,pg_1/').replace(/\.pdf$/i, '.jpg')
+                        : `https://docs.google.com/gview?url=${encodeURIComponent(profile.resumeUrl)}&embedded=true`
+                      }
+                      className="w-full h-full object-cover rounded-xl transition-opacity group-hover:opacity-60"
+                      alt="Resume Preview"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div className="hidden absolute inset-0 flex items-center justify-center bg-slate-900/50 rounded-xl flex-col gap-2 transition-all">
+                      <FileText size={40} className="text-white opacity-80" />
+                      <span className="text-[10px] text-white opacity-80 font-bold uppercase tracking-wider">Expand Preview</span>
+                    </div>
+                  </div>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-slate-400 text-xs">No PDF</div>
+                  <div className="flex items-center justify-center h-full text-zinc-600 bg-zinc-900/50 rounded-xl flex-col gap-2">
+                    <FileText size={40} className="text-zinc-700" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">No PDF Found</span>
+                  </div>
                 )}
               </div>
             </div>

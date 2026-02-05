@@ -12,23 +12,32 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Helper to get PDF buffer from either local or remote URL
 const getPdfBuffer = async (resumeUrl) => {
-    if (!resumeUrl) throw new Error("No resume URL found in your profile. Please re-upload your resume.");
+    if (!resumeUrl) throw new Error("No resume URL found. Please upload your resume first.");
 
-    console.log(`> [AI] Attempting to fetch resume from: ${resumeUrl}`);
+    console.log(`> [AI] Processing resume: ${resumeUrl}`);
 
-    if (resumeUrl.startsWith('http') || resumeUrl.startsWith('https://')) {
+    // Detect if URL is pointing to THIS server (localhost/127.0.0.1)
+    const isLoopback = resumeUrl.includes('localhost') || resumeUrl.includes('127.0.0.1');
+    const isRemote = (resumeUrl.startsWith('http') || resumeUrl.startsWith('https://')) && !isLoopback;
+
+    if (isRemote) {
+        console.log(`> [AI] Fetching remote PDF via axios...`);
         try {
             const response = await axios.get(resumeUrl, {
                 responseType: 'arraybuffer',
-                timeout: 15000 // 15s timeout
+                timeout: 30000, // 30s timeout
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
             });
             return Buffer.from(response.data);
         } catch (err) {
-            console.error(`> [AI] Cloudinary Fetch Error: ${err.message}`);
-            throw new Error(`Cloudinary Error: Unable to fetch PDF (${err.message}). Is the URL accessible?`);
+            console.error(`> [AI] Fetch Error: ${err.message}`);
+            throw new Error(`Connection Error: Unable to fetch PDF from cloud storage (${err.message}).`);
         }
     } else {
-        // Handle local paths carefully
+        // Local File Handling (Bypass axios for localhost or relative paths)
+        console.log(`> [AI] Reading local PDF from filesystem...`);
         const filename = resumeUrl.includes('uploads')
             ? resumeUrl.split('uploads').pop().replace(/^[\\\/]+/, '')
             : resumeUrl;
@@ -38,7 +47,7 @@ const getPdfBuffer = async (resumeUrl) => {
 
         if (!fs.existsSync(filePath)) {
             console.error(`> [AI] Local File Missing: ${filePath}`);
-            throw new Error(`File Error: Your saved resume (local) is missing from the server. Please re-upload it.`);
+            throw new Error(`File Error: Your saved resume is missing from the server. Please re-upload it in your Profile.`);
         }
         return fs.readFileSync(filePath);
     }

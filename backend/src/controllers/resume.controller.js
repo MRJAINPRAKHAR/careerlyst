@@ -22,7 +22,8 @@ const parseResume = async (req, res) => {
 
     // --- 1.5 SAVE RESUME URL TO DB ---
     const userId = req.user.id; // From verifyToken middleware
-    const resumeUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const resumeUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     // Update the user's profile with the resume URL immediately
     await pool.query("UPDATE users SET resume_url = ? WHERE id = ?", [resumeUrl, userId]);

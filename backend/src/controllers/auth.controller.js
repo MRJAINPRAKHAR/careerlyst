@@ -349,7 +349,8 @@ const updateResume = async (req, res) => {
     }
 
     const userId = req.user.id;
-    const resumeUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const resumeUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     await pool.query("UPDATE users SET resume_url = ? WHERE id = ?", [resumeUrl, userId]);
 
@@ -447,7 +448,8 @@ const uploadAvatar = async (req, res) => {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     const userId = req.user.id;
-    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const avatarUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     await pool.query("UPDATE users SET profile_pic = ? WHERE id = ?", [avatarUrl, userId]);
     res.json({ message: "Avatar updated", avatarUrl });
@@ -474,7 +476,8 @@ const uploadBanner = async (req, res) => {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     const userId = req.user.id;
-    const bannerUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const bannerUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     await pool.query("UPDATE users SET banner_url = ? WHERE id = ?", [bannerUrl, userId]);
     res.json({ message: "Banner updated", bannerUrl });

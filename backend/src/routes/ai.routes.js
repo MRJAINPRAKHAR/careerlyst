@@ -19,9 +19,10 @@ const storage = new CloudinaryStorage({
         const isPDF = file.mimetype === 'application/pdf' || file.originalname.toLowerCase().endsWith('.pdf');
         return {
             folder: 'careerlyst/temp_scans',
-            resource_type: isPDF ? 'raw' : 'auto',  // Use 'raw' for PDFs to avoid 401 errors
+            resource_type: isPDF ? 'raw' : 'auto',
             public_id: `resume-${Date.now()}`,
-            format: isPDF ? 'pdf' : undefined
+            format: isPDF ? 'pdf' : undefined,
+            access_mode: 'public'  // Make files publicly accessible
         };
     }
 });

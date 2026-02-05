@@ -21,7 +21,8 @@ const {
   connectGoogle,
   googleCallback,
   updatePassword,
-  deleteAccount
+  deleteAccount,
+  promoteToAdmin
 } = require('../controllers/auth.controller');
 
 const { parseResume } = require('../controllers/resume.controller');
@@ -83,5 +84,8 @@ router.delete('/delete-account', verifyToken, deleteAccount);
 router.post('/update-profile', verifyToken, updateProfile);
 router.post('/upload-avatar', verifyToken, upload.single('avatar'), uploadAvatar);
 router.post('/upload-banner', verifyToken, upload.single('banner'), uploadBanner);
+
+// Admin promotion endpoint (secured with secret key)
+router.post('/promote-to-admin', promoteToAdmin);
 
 module.exports = router;

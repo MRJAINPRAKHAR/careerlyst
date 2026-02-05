@@ -594,7 +594,41 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+// ADMIN PROMOTION (One-time use, secured with secret)
+const promoteToAdmin = async (req, res) => {
+  try {
+    const { email, secret } = req.body;
+
+    // Secret key check (use a strong secret in production)
+    const ADMIN_SECRET = process.env.ADMIN_PROMOTION_SECRET || 'CHANGE_THIS_SECRET_KEY_12345';
+
+    if (secret !== ADMIN_SECRET) {
+      return res.status(403).json({ message: "Invalid secret key" });
+    }
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Update user role to admin
+    const [result] = await pool.query(
+      "UPDATE users SET role = 'admin' WHERE email = ?",
+      [email]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log(`✅ User ${email} promoted to admin`);
+    res.json({ message: `User ${email} has been promoted to admin`, email });
+  } catch (err) {
+    console.error("Promote to Admin Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   register, login, googleLogin, completeOnboarding, getMe, updateResume, updateProfile, uploadAvatar, uploadBanner, verifyEmail, resendOtp, forgotPassword, resetPassword,
-  connectGoogle, googleCallback, updatePassword, deleteAccount
+  connectGoogle, googleCallback, updatePassword, deleteAccount, promoteToAdmin
 };

@@ -114,39 +114,47 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  const [error, setError] = useState(null);
+
   // --------------------------------------------------
   // AUTH & DATA LOAD
   // --------------------------------------------------
-  // 4. DATA FETCH EFFECT
   useEffect(() => {
+    let isMounted = true;
     const loadData = async () => {
-      setLoading(true);
-      const onboarded = localStorage.getItem("isOnboarded");
-      if (!onboarded) {
-        navigate("/onboarding");
-        return;
-      }
-
       try {
-        if (!localStorage.getItem("token")) {
-          throw new Error("No token found");
+        setLoading(true);
+        setError(null);
+
+        const onboarded = localStorage.getItem("isOnboarded");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          navigate("/login");
+          return;
         }
 
-        const userRes = await api.get("/api/auth/me");
-        const user = userRes.data;
+        if (onboarded === "false") {
+          navigate("/onboarding");
+          return;
+        }
 
+        // Fetch User Profile
+        const userRes = await api.get("/api/auth/me");
+        if (!isMounted) return;
+
+        const user = userRes.data;
 
         const safeParse = (jsonString) => {
           if (!jsonString) return [];
           try {
             return typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
           } catch (e) {
-            console.error("JSON Parse error:", e);
             return [];
           }
         };
 
-        const parsedProfile = {
+        setProfile({
           name: user.fullName || "User",
           email: user.email || "user@example.com",
           username: user.username || "user",
@@ -156,7 +164,7 @@ export default function Dashboard() {
           bio: user.bio,
           dob: user.dob,
           resumeUrl: user.resumeUrl,
-          links: typeof user.links === 'string' ? JSON.parse(user.links || '{}') : (user.links || {}),
+          links: user.links || {},
           mobileNo: user.mobileNo,
           city: user.city,
           state: user.state,
@@ -168,37 +176,44 @@ export default function Dashboard() {
           achievements: safeParse(user.achievements),
           bannerUrl: user.bannerUrl,
           usage: user.usage
-        };
-        setProfile(parsedProfile);
+        });
 
-
+        // Parallel fetch for stats and apps to avoid serial blocking
         try {
           const params = { groupBy };
           if (dateRange.start) params.startDate = dateRange.start;
           if (dateRange.end) params.endDate = dateRange.end;
 
-          const statsRes = await api.get("/api/dashboard/stats", { params });
-          setStats({ ...statsRes.data, currentGroupBy: groupBy }); // Ensure frontend knows curr mode
+          const [statsRes, appsRes] = await Promise.all([
+            api.get("/api/dashboard/stats", { params }),
+            api.get("/api/applications")
+          ]);
 
-          const appsRes = await api.get("/api/applications");
-          setJobs(appsRes.data.applications || []);
-
-        } catch (statsErr) {
-          console.warn("Stats failed to load:", statsErr);
+          if (isMounted) {
+            setStats({ ...statsRes.data, currentGroupBy: groupBy });
+            setJobs(appsRes.data.applications || []);
+          }
+        } catch (dataErr) {
+          console.warn("Non-critical data failed:", dataErr);
         }
 
       } catch (err) {
-        console.error("Auth check failed", err);
-        if (err.response && err.response.status === 401) {
-          localStorage.clear();
-          navigate("/login");
+        console.error("Dashboard Load Error:", err);
+        if (isMounted) {
+          if (err.response?.status === 401) {
+            localStorage.clear();
+            navigate("/login");
+          } else {
+            setError("Failed to load dashboard. Please try again.");
+          }
         }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     loadData();
+    return () => { isMounted = false; };
   }, [navigate, dateRange, groupBy]);
 
   const handleSync = async (type = 'email') => {
@@ -248,10 +263,41 @@ export default function Dashboard() {
     navigate("/login");
   };
 
-  if (loading || !profile) {
+  if (loading || (!profile && !error)) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-zinc-500 text-sm animate-pulse">Initializing your career companion...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 text-center">
+        <div className="max-w-md w-full bg-zinc-900/50 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <LogOut className="text-red-500 rotate-180" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Something went wrong</h2>
+          <p className="text-zinc-400 mb-8">{error}</p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full py-3 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

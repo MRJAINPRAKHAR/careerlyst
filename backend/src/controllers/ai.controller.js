@@ -12,14 +12,27 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Helper to get PDF buffer from either local or remote URL
 const getPdfBuffer = async (resumeUrl) => {
+    if (!resumeUrl) throw new Error("No resume URL provided");
+
     if (resumeUrl.startsWith('http')) {
-        const response = await axios.get(resumeUrl, { responseType: 'arraybuffer' });
-        return Buffer.from(response.data);
+        try {
+            const response = await axios.get(resumeUrl, {
+                responseType: 'arraybuffer',
+                timeout: 10000 // 10s timeout
+            });
+            return Buffer.from(response.data);
+        } catch (err) {
+            console.error("Cloudinary Fetch Error:", err.message);
+            throw new Error("Failed to fetch resume from Cloudinary. Please try uploading again.");
+        }
     } else {
-        const filename = resumeUrl.split('/uploads/').pop();
+        // Handle both 'uploads/filename.pdf' and '/uploads/filename.pdf'
+        const filename = resumeUrl.replace(/^.*uploads\//, '');
         const filePath = path.resolve(__dirname, '../../uploads', filename);
+
         if (!fs.existsSync(filePath)) {
-            throw new Error("Local resume file missing");
+            console.error("Local File Missing:", filePath);
+            throw new Error("Resume file not found on server.");
         }
         return fs.readFileSync(filePath);
     }
@@ -68,11 +81,18 @@ exports.analyzeResume = async (req, res) => {
             }
         }
 
-        const pdfData = await pdfParse(dataBuffer);
+        let pdfData;
+        try {
+            pdfData = await pdfParse(dataBuffer);
+        } catch (err) {
+            console.error("PDF Parse Error:", err);
+            return res.status(400).json({ message: "Failed to read PDF content. Please ensure it's a valid PDF." });
+        }
+
         const resumeText = pdfData.text;
 
-        if (!resumeText || resumeText.length < 50) {
-            return res.status(400).json({ message: "Resume content is too short or unreadable." });
+        if (!resumeText || resumeText.trim().length < 50) {
+            return res.status(400).json({ message: "Resume content is too short or unreadable. Try a different PDF format." });
         }
 
         const { jobDescription } = req.body;

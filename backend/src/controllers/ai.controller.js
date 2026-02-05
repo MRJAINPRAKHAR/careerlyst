@@ -6,7 +6,24 @@ const db = require("../config/db");
 const groqService = require("../services/groq.service");
 const ollamaService = require("../services/ollama.service");
 
+const axios = require("axios");
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Helper to get PDF buffer from either local or remote URL
+const getPdfBuffer = async (resumeUrl) => {
+    if (resumeUrl.startsWith('http')) {
+        const response = await axios.get(resumeUrl, { responseType: 'arraybuffer' });
+        return Buffer.from(response.data);
+    } else {
+        const filename = resumeUrl.split('/uploads/').pop();
+        const filePath = path.resolve(__dirname, '../../uploads', filename);
+        if (!fs.existsSync(filePath)) {
+            throw new Error("Local resume file missing");
+        }
+        return fs.readFileSync(filePath);
+    }
+};
 
 exports.analyzeResume = async (req, res) => {
     try {
@@ -29,10 +46,13 @@ exports.analyzeResume = async (req, res) => {
             }
         }
 
-        let filePath;
+        let dataBuffer;
         let isTempFile = false;
+        let tempFilePath = null;
+
         if (req.file) {
-            filePath = req.file.path;
+            tempFilePath = req.file.path;
+            dataBuffer = fs.readFileSync(tempFilePath);
             isTempFile = true;
         } else {
             const [rows] = await db.query("SELECT resume_url FROM users WHERE id = ?", [userId]);
@@ -41,20 +61,13 @@ exports.analyzeResume = async (req, res) => {
                 return res.status(400).json({ message: "No resume found. Please upload one." });
             }
 
-            const resumeUrl = rows[0].resume_url;
-            const filename = resumeUrl.split('/uploads/').pop();
-
-            if (!filename) {
-                return res.status(500).json({ message: "Invalid resume URL format stored." });
-            }
-
-            filePath = path.resolve(__dirname, '../../uploads', filename);
-
-            if (!fs.existsSync(filePath)) {
-                return res.status(404).json({ message: `Stored file missing on server: ${filename}` });
+            try {
+                dataBuffer = await getPdfBuffer(rows[0].resume_url);
+            } catch (err) {
+                return res.status(404).json({ message: err.message });
             }
         }
-        const dataBuffer = fs.readFileSync(filePath);
+
         const pdfData = await pdfParse(dataBuffer);
         const resumeText = pdfData.text;
 
@@ -163,8 +176,8 @@ exports.analyzeResume = async (req, res) => {
             return res.status(500).json({ message: "AI analysis return invalid JSON format." });
         }
 
-        if (isTempFile) {
-            fs.unlinkSync(filePath);
+        if (isTempFile && tempFilePath) {
+            fs.unlinkSync(tempFilePath);
         }
 
         const todayStr = new Date().toLocaleDateString('en-CA');
@@ -381,21 +394,20 @@ exports.matchJobToResume = async (req, res) => {
             return res.status(400).json({ message: "Please provide a valid Job Description." });
         }
 
-        // 1. Get Resume Path
+        // 1. Get Resume Content
         const [rows] = await db.query("SELECT resume_url FROM users WHERE id = ?", [userId]);
         if (rows.length === 0 || !rows[0].resume_url) {
             return res.status(404).json({ message: "No resume found. Please upload one first." });
         }
 
-        const filename = rows[0].resume_url.split('/uploads/').pop();
-        const filePath = path.resolve(__dirname, '../../uploads', filename);
-
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ message: "Resume file missing on server." });
+        let dataBuffer;
+        try {
+            dataBuffer = await getPdfBuffer(rows[0].resume_url);
+        } catch (err) {
+            return res.status(404).json({ message: err.message });
         }
 
         // 2. Parse Resume
-        const dataBuffer = fs.readFileSync(filePath);
         const pdfData = await pdfParse(dataBuffer);
         const resumeText = pdfData.text;
 

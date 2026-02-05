@@ -26,6 +26,10 @@ app.get('/', (req, res) => {
     res.send('Backend is running!');
 });
 
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', uptime: process.uptime() });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/automation', automationRoutes);
 app.use('/api/ai', aiRoutes);

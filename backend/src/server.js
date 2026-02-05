@@ -59,6 +59,15 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/admin', require('./routes/admin.routes'));
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error("❌ [GLOBAL ERROR]:", err.stack);
+    res.status(err.status || 500).json({
+        message: err.message || "Internal Server Error",
+        error: process.env.NODE_ENV === 'development' ? err.stack : {}
+    });
+});
+
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, async () => {

@@ -46,16 +46,18 @@ console.log("> [SYS] Cloudinary Storage Initialized with Cloud Name:", process.e
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'careerlyst',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
-    resource_type: 'auto'
+  params: async (req, file) => {
+    return {
+      folder: 'careerlyst',
+      resource_type: 'auto',
+      public_id: `${file.fieldname}-${Date.now()}`
+    };
   }
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit for cloud
+  limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit
 });
 
 

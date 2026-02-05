@@ -257,7 +257,14 @@ export default function Profile({ profile }) {
                 className={`relative w-full aspect-[1/1.4] bg-white rounded-xl overflow-hidden cursor-pointer group shadow-xl transition-all hover:scale-[1.02] ${!profile.resumeUrl ? 'opacity-50 grayscale pointer-events-none' : ''}`}
               >
                 {profile.resumeUrl ? (
-                  <iframe src={`${profile.resumeUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} className="w-full h-full border-none" title="Resume" />
+                  <iframe
+                    src={profile.resumeUrl.includes('cloudinary') && !profile.resumeUrl.toLowerCase().endsWith('.pdf')
+                      ? `${profile.resumeUrl}.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH`
+                      : `${profile.resumeUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`
+                    }
+                    className="w-full h-full border-none bg-slate-900"
+                    title="Resume"
+                  />
                 ) : (
                   <div className="flex items-center justify-center h-full text-slate-400 text-xs">No PDF</div>
                 )}

@@ -253,9 +253,11 @@ export default function Profile({ profile }) {
           <MotionSection delay={0.15} className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 sticky top-6">
             <h3 className="text-lg font-bold text-white mb-4">Resume</h3>
             <div className="p-1 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 mb-4">
-              <div
-                onClick={() => profile.resumeUrl && window.open(profile.resumeUrl, "_blank")}
-                className={`relative w-full aspect-[1/1.4] bg-white rounded-xl overflow-hidden cursor-pointer group shadow-xl transition-all hover:scale-[1.02] ${!profile.resumeUrl ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+              <a
+                href={profile.resumeUrl ? (profile.resumeUrl.includes('cloudinary') ? profile.resumeUrl.replace(/\/upload\//, '/upload/fl_inline/') : profile.resumeUrl) : '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`relative w-full block aspect-[1/1.4] bg-white rounded-xl overflow-hidden cursor-pointer group shadow-xl transition-all hover:scale-[1.02] ${!profile.resumeUrl ? 'opacity-50 grayscale pointer-events-none' : ''}`}
               >
                 {profile.resumeUrl ? (
                   <div className="w-full h-full relative group">
@@ -283,10 +285,17 @@ export default function Profile({ profile }) {
                     <span className="text-[10px] font-bold uppercase tracking-wider">No PDF Found</span>
                   </div>
                 )}
-              </div>
+              </a>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => profile.resumeUrl && window.open(profile.resumeUrl, "_blank")} className="py-2.5 rounded-lg bg-white/5 text-xs font-bold border border-white/10 text-white">Open</button>
+              <a
+                href={profile.resumeUrl ? (profile.resumeUrl.includes('cloudinary') ? profile.resumeUrl.replace(/\/upload\//, '/upload/fl_inline/') : profile.resumeUrl) : '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 rounded-lg bg-white/5 text-xs font-bold border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-all"
+              >
+                Open
+              </a>
               <button onClick={() => resumeInputRef.current.click()} className="py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500">Update</button>
             </div>
             <input type="file" ref={resumeInputRef} onChange={handleResumeChange} className="hidden" accept=".pdf" />

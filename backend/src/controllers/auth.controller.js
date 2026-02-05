@@ -297,7 +297,7 @@ const getMe = async (req, res) => {
             SELECT id, full_name, email, job_title, mobile_no, experience,
                    skills, education, work_history, certificates, achievements,
                    city, state, country,
-                   username, bio, dob, profile_pic, banner_url, resume_url,
+                   username, bio, profile_pic, banner_url, resume_url,
                    linkedin, twitter, github, leetcode, hackerrank,
                    username_last_changed,
                    daily_resume_scans, last_resume_scan_date, last_analysis_result
@@ -319,7 +319,7 @@ const getMe = async (req, res) => {
       bio: user.bio,
       resumeUrl: user.resume_url,
       bannerUrl: user.banner_url || null,
-      profilePic: user.profile_pic || `https://ui-avatars.com/api/?name=${user.full_name.replace(" ", "+")}&background=6366f1&color=fff`,
+      profilePic: user.profile_pic || `https://ui-avatars.com/api/?name=${(user.full_name || "User").split(" ").join("+")}&background=6366f1&color=fff`,
       links: {
         linkedin: user.linkedin,
         twitter: user.twitter,
@@ -376,7 +376,7 @@ const updateProfile = async (req, res) => {
 
     let sql = `
       UPDATE users SET 
-        full_name=?, bio=?, dob=?, job_title=?, 
+        full_name=?, bio=?, job_title=?, 
         linkedin=?, twitter=?, github=?, leetcode=?, hackerrank=?,
         mobile_no=?, city=?, state=?, country=?,
         skills=?, education=?, work_history=?, certificates=?, achievements=?
@@ -384,7 +384,7 @@ const updateProfile = async (req, res) => {
     `;
 
     let params = [
-      fullName, bio, validDob, jobTitle,
+      fullName, bio, jobTitle,
       links?.linkedin, links?.twitter, links?.github, links?.leetcode, links?.hackerrank,
       mobileNo, city, state, country,
       formatJson(skills), formatJson(education), formatJson(workHistory), formatJson(certifications), formatJson(achievements),
@@ -414,7 +414,7 @@ const updateProfile = async (req, res) => {
         // Use SQL that updates username & timestamp
         sql = `
             UPDATE users SET 
-              full_name=?, bio=?, dob=?, job_title=?, 
+              full_name=?, bio=?, job_title=?, 
               linkedin=?, twitter=?, github=?, leetcode=?, hackerrank=?,
               mobile_no=?, city=?, state=?, country=?,
               skills=?, education=?, work_history=?, certificates=?, achievements=?,
@@ -422,7 +422,7 @@ const updateProfile = async (req, res) => {
             WHERE id=?
           `;
         params = [
-          fullName, bio, validDob, jobTitle,
+          fullName, bio, jobTitle,
           links?.linkedin, links?.twitter, links?.github, links?.leetcode, links?.hackerrank,
           mobileNo, city, state, country,
           formatJson(skills), formatJson(education), formatJson(workHistory), formatJson(certifications), formatJson(achievements),

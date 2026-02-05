@@ -42,6 +42,7 @@ const initDatabase = async () => {
                 state VARCHAR(100),
                 country VARCHAR(100),
                 bio LONGTEXT,
+                dob DATE,
                 resume_url VARCHAR(500),
                 banner_url VARCHAR(500),
                 profile_pic VARCHAR(500),

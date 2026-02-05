@@ -20,9 +20,9 @@ const storage = new CloudinaryStorage({
         return {
             folder: 'careerlyst/temp_scans',
             resource_type: isPDF ? 'raw' : 'auto',
+            type: 'upload',  // 'upload' type is public by default
             public_id: `resume-${Date.now()}`,
-            format: isPDF ? 'pdf' : undefined,
-            access_mode: 'public'  // Make files publicly accessible
+            format: isPDF ? 'pdf' : undefined
         };
     }
 });

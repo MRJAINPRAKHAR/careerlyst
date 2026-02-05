@@ -51,9 +51,9 @@ const storage = new CloudinaryStorage({
     return {
       folder: 'careerlyst',
       resource_type: isPDF ? 'raw' : 'auto',
+      type: 'upload',  // 'upload' type is public by default
       public_id: `${file.fieldname}-${Date.now()}`,
-      format: isPDF ? 'pdf' : undefined,
-      access_mode: 'public'  // Make files publicly accessible
+      format: isPDF ? 'pdf' : undefined
     };
   }
 });

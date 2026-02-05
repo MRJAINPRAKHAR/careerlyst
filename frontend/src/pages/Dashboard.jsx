@@ -204,7 +204,8 @@ export default function Dashboard() {
             localStorage.clear();
             navigate("/login");
           } else {
-            setError("Failed to load dashboard. Please try again.");
+            const errorMsg = err.response?.data?.message || err.message || "Failed to load dashboard. Please try again.";
+            setError(errorMsg);
           }
         }
       } finally {

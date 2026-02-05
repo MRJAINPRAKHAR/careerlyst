@@ -294,9 +294,10 @@ const getMe = async (req, res) => {
   try {
     const userId = req.user.id;
     const [rows] = await pool.query(`
-            SELECT id, full_name, email, job_title, mobile_no, resume_url, banner_url,
-                   skills, education, work_history, achievements,
-                   username, bio, dob, profile_pic, 
+            SELECT id, full_name, email, job_title, mobile_no, experience,
+                   skills, education, work_history, certificates, achievements,
+                   city, state, country,
+                   username, bio, dob, profile_pic, banner_url, resume_url,
                    linkedin, twitter, github, leetcode, hackerrank,
                    username_last_changed,
                    daily_resume_scans, last_resume_scan_date, last_analysis_result

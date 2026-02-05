@@ -282,7 +282,7 @@ const completeOnboarding = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.json({ message: "Profile synchronized successfully!", isOnboarded: true, resumeUrl });
+    return res.json({ message: "Profile synchronized successfully!", isOnboarded: true });
   } catch (err) {
     console.error("ONBOARDING ERROR:", err.message);
     return res.status(500).json({ message: "Error saving profile details", error: err.message });

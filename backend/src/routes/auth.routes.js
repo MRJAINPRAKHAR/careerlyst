@@ -50,7 +50,7 @@ const storage = new CloudinaryStorage({
     const isPDF = file.mimetype === 'application/pdf' || file.originalname.toLowerCase().endsWith('.pdf');
     return {
       folder: 'careerlyst',
-      resource_type: 'auto',
+      resource_type: isPDF ? 'raw' : 'auto',  // Use 'raw' for PDFs to avoid 401 errors
       public_id: `${file.fieldname}-${Date.now()}`,
       format: isPDF ? 'pdf' : undefined
     };

@@ -8,20 +8,20 @@ const SCOPES = [
 
 class GmailService {
     constructor() {
+        const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${process.env.BACKEND_URL}/api/automation/callback`;
+
         this.oAuth2Client = new google.auth.OAuth2(
             process.env.GOOGLE_CLIENT_ID,
             process.env.GOOGLE_CLIENT_SECRET,
-            process.env.GOOGLE_REDIRECT_URI
+            redirectUri
         );
 
         if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
             console.error("❌ Missing Google OAuth Credentials in .env");
         }
 
-        if (!process.env.GOOGLE_REDIRECT_URI) {
-            console.error("❌ GOOGLE_REDIRECT_URI is not set!");
-        } else if (process.env.GOOGLE_REDIRECT_URI.includes('localhost') && process.env.NODE_ENV === 'production') {
-            console.warn("⚠️ [SECURITY] GOOGLE_REDIRECT_URI is set to localhost in PRODUCTION!");
+        if (!process.env.BACKEND_URL && !process.env.GOOGLE_REDIRECT_URI) {
+            console.error("❌ Neither BACKEND_URL nor GOOGLE_REDIRECT_URI is set!");
         }
     }
 

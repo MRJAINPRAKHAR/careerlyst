@@ -1,0 +1,23 @@
+/* Soft gradient glow background helpers */
+.glow-blue {
+  background: radial-gradient(
+    circle at center,
+    rgba(59, 130, 246, 0.18),
+    transparent 60%
+  );
+}
+
+.glow-pink {
+  background: radial-gradient(
+    circle at center,
+    rgba(217, 70, 239, 0.18),
+    transparent 60%
+  );
+}
+
+/* Premium glass */
+.glass {
+  background: rgba(2, 6, 23, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  backdrop-filter: blur(14px);
+}

@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "Careerlyst Companion",
+    "version": "1.0",
+    "description": "Sync LinkedIn Applied Jobs to your Careerlyst Dashboard",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://www.linkedin.com/*",
+        "http://localhost:5001/*"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.linkedin.com/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # 1. Database
+  db:
+    image: mysql:8.0
+    container_name: job_tracker_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-job_tracker}
+
+  # 2. AI Brain (Ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: job_tracker_ai
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+
+  # 3. Model Puller (Automates "ollama run llama3.1")
+  ollama-model-puller:
+    image: curlimages/curl:latest
+    container_name: model_puller
+    depends_on:
+      - ollama
+    entrypoint: >
+      /bin/sh -c " echo 'Waiting for Ollama to start...'; until curl -s http://ollama:11434/api/tags > /dev/null; do sleep 2; done; echo 'Ollama is ready. Checking for llama3.1...'; curl -s http://ollama:11434/api/pull -d '{\"name\": \"llama3.1\"}'; echo 'Model ready!'; "
+
+  # 4. Backend Application
+  backend:
+    build: ./backend
+    container_name: job_tracker_backend
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=${DB_PASSWORD:-rootpassword}
+      - DB_NAME=${DB_NAME:-job_tracker}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - db
+      - ollama
+      - ollama-model-puller
+
+volumes:
+  db_data:
+  ollama_models:

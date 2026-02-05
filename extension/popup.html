@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    body {
+      width: 320px;
+      padding: 20px;
+      background: #0A0A0A;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: white;
+      border-radius: 8px;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      border-color: #6366f1;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 10px;
+      transition: transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: #262626;
+      box-shadow: none;
+      border: 1px solid #333;
+    }
+
+    button.secondary:hover {
+      background: #333;
+    }
+
+    /* New Premium Link Style */
+    .premium-link {
+      display: block;
+      margin-top: 15px;
+      padding: 12px;
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
+      transition: all 0.2s;
+      animation: pulse 2s infinite;
+    }
+
+    .premium-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(219, 39, 119, 0.5);
+    }
+
+    #status {
+      font-size: 13px;
+      margin-top: 15px;
+      color: #a1a1aa;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(219, 39, 119, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(219, 39, 119, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(219, 39, 119, 0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Careerlyst Companion</h2>
+
+  <div id="auth-section">
+    <input type="text" id="token-input" placeholder="Paste Token from Dashboard Profile">
+    <button id="save-token">Save Token</button>
+  </div>
+
+  <div id="action-section" class="hidden">
+    <button id="scrape-btn">Sync Applied Jobs</button>
+    <button id="reset-token" class="secondary">Reset Token</button>
+  </div>
+
+  <div id="status"></div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

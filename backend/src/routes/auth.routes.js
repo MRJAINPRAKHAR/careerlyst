@@ -47,10 +47,12 @@ console.log("> [SYS] Cloudinary Storage Initialized with Cloud Name:", process.e
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
+    const isPDF = file.mimetype === 'application/pdf' || file.originalname.toLowerCase().endsWith('.pdf');
     return {
       folder: 'careerlyst',
       resource_type: 'auto',
-      public_id: `${file.fieldname}-${Date.now()}`
+      public_id: `${file.fieldname}-${Date.now()}`,
+      format: isPDF ? 'pdf' : undefined
     };
   }
 });

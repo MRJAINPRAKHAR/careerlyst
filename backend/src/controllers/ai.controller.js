@@ -93,9 +93,19 @@ exports.analyzeResume = async (req, res) => {
 
         if (req.file) {
             console.log(`> [AI] Processing newly uploaded file: ${req.file.originalname}`);
-            tempFilePath = req.file.path;
-            dataBuffer = fs.readFileSync(tempFilePath);
-            isTempFile = true;
+            try {
+                // Handle both local disk path and Cloudinary URL
+                if (req.file.path.startsWith('http')) {
+                    dataBuffer = await getPdfBuffer(req.file.path);
+                } else {
+                    tempFilePath = req.file.path;
+                    dataBuffer = fs.readFileSync(tempFilePath);
+                }
+                isTempFile = true;
+            } catch (err) {
+                console.error(`> [AI] Upload Buffer Error: ${err.message}`);
+                return res.status(400).json({ message: `Upload Error: ${err.message}` });
+            }
         } else {
             console.log(`> [AI] Processing saved resume: ${user.resume_url}`);
             if (!user.resume_url) {
@@ -105,7 +115,7 @@ exports.analyzeResume = async (req, res) => {
             try {
                 dataBuffer = await getPdfBuffer(user.resume_url);
             } catch (err) {
-                console.error(`> [AI] Buffer Error: ${err.message}`);
+                console.error(`> [AI] Saved Buffer Error: ${err.message}`);
                 return res.status(400).json({ message: err.message });
             }
         }

@@ -193,11 +193,11 @@ router.get('/callback', async (req, res) => {
         // Run Initial Scan
         const count = await runScan(userId);
 
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard?sync=success&count=${count}`);
+        res.redirect(`${process.env.FRONTEND_URL}/dashboard?sync=success&count=${count}`);
 
     } catch (error) {
         console.error("Auth Error:", error);
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard?sync=error`);
+        res.redirect(`${process.env.FRONTEND_URL}/dashboard?sync=error`);
     }
 });
 
@@ -225,7 +225,7 @@ router.post('/scan', verifyToken, async (req, res) => {
             console.log("❌ Refresh Token missing for User:", userId);
             return res.status(401).json({
                 message: "Auth required",
-                authUrl: `${process.env.BACKEND_URL || 'http://localhost:5001'}/api/automation/auth/google?userId=${userId}`
+                authUrl: `${process.env.BACKEND_URL}/api/automation/auth/google?userId=${userId}`
             });
         }
 
@@ -254,7 +254,7 @@ router.post('/scan', verifyToken, async (req, res) => {
         if (err.message && (err.message.includes('invalid_grant') || err.message.includes('unauthorized') || err.message.includes('invalid_token') || err.response?.status === 401)) {
             return res.status(401).json({
                 message: "Auth expired",
-                authUrl: `${process.env.BACKEND_URL || 'http://localhost:5001'}/api/automation/auth/google?userId=${req.user.id}`
+                authUrl: `${process.env.BACKEND_URL}/api/automation/auth/google?userId=${req.user.id}`
             });
         }
 

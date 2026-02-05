@@ -55,7 +55,7 @@ router.post('/reset-password', resetPassword);
 router.get('/me', verifyToken, getMe);
 
 
-router.post('/complete-onboarding', verifyToken, upload.single('resume'), completeOnboarding);
+router.post('/complete-onboarding', verifyToken, completeOnboarding);
 router.post('/update-resume', verifyToken, upload.single('resume'), updateResume);
 router.post('/parse', verifyToken, upload.single('resume'), parseResume);
 

@@ -247,12 +247,6 @@ const completeOnboarding = async (req, res) => {
 
     const userId = req.user.id;
 
-    // Handle Resume File
-    let resumeUrl = null;
-    if (req.file) {
-      resumeUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    }
-
     const formatJson = (data) => {
       if (typeof data === 'string') return data;
       return JSON.stringify(data || []);
@@ -273,8 +267,7 @@ const completeOnboarding = async (req, res) => {
         city = ?,
         state = ?,
         country = ?,
-        bio = ?,
-        resume_url = COALESCE(?, resume_url) 
+        bio = ?
       WHERE id = ?
     `;
 
@@ -282,7 +275,6 @@ const completeOnboarding = async (req, res) => {
       fullName, mobileNo, jobTitle, experienceRange,
       formatJson(skills), formatJson(education), formatJson(workHistory), formatJson(certifications), formatJson(achievements),
       city, state, country, bio,
-      resumeUrl,
       userId
     ]);
 

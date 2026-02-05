@@ -257,15 +257,20 @@ export default function Onboarding() {
   };
 
   const handleSubmit = async () => {
+    if (saving) return;
     setSaving(true);
+    setError(null);
     try {
       const payload = { ...formData, achievements: formData.achievements || [] };
       await api.post("/api/auth/complete-onboarding", payload);
       localStorage.setItem("isOnboarded", "true");
       navigate("/dashboard");
     } catch (err) {
-      console.error(err);
-      alert("Failed to save profile. Please verify your internet connection.");
+      console.error("ONBOARDING ERROR:", err);
+      const msg = err.response?.data?.message || "Failed to save profile. Please check your connection.";
+      setError(msg);
+      alert(msg);
+    } finally {
       setSaving(false);
     }
   };

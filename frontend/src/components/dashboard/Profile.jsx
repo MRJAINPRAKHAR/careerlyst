@@ -254,7 +254,7 @@ export default function Profile({ profile }) {
             <h3 className="text-lg font-bold text-white mb-4">Resume</h3>
             <div className="p-1 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 mb-4">
               <a
-                href={profile.resumeUrl ? (profile.resumeUrl.includes('cloudinary') ? profile.resumeUrl.replace(/\/upload\//, '/upload/fl_inline/') : profile.resumeUrl) : '#'}
+                href={profile.resumeUrl ? (profile.resumeUrl.includes('cloudinary') ? profile.resumeUrl.replace(/\/upload\//, '/upload/pg_1/').replace(/\.pdf$/i, '.jpg') : profile.resumeUrl) : '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`relative w-full block aspect-[1/1.4] bg-white rounded-xl overflow-hidden cursor-pointer group shadow-xl transition-all hover:scale-[1.02] ${!profile.resumeUrl ? 'opacity-50 grayscale pointer-events-none' : ''}`}
@@ -263,20 +263,16 @@ export default function Profile({ profile }) {
                   <div className="w-full h-full relative group">
                     <img
                       src={profile.resumeUrl.includes('cloudinary')
-                        ? profile.resumeUrl.replace(/\/upload\//, '/upload/w_800,f_auto,q_auto,pg_1/').replace(/\.pdf$/i, '.jpg')
+                        ? profile.resumeUrl.replace(/\/upload\//, '/upload/w_1000,pg_1/').replace(/\.pdf$/i, '.jpg')
                         : `https://docs.google.com/gview?url=${encodeURIComponent(profile.resumeUrl)}&embedded=true`
                       }
-                      className="w-full h-full object-cover rounded-xl transition-opacity group-hover:opacity-60"
+                      className="w-full h-full object-contain bg-slate-100 rounded-xl transition-opacity group-hover:opacity-60"
                       alt="Resume Preview"
                       loading="lazy"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
                     />
                     <div className="hidden absolute inset-0 flex items-center justify-center bg-slate-900/50 rounded-xl flex-col gap-2 transition-all">
                       <FileText size={40} className="text-white opacity-80" />
-                      <span className="text-[10px] text-white opacity-80 font-bold uppercase tracking-wider">Expand Preview</span>
+                      <span className="text-[10px] text-white opacity-80 font-bold uppercase tracking-wider text-center px-4">Click to View Image</span>
                     </div>
                   </div>
                 ) : (
@@ -287,17 +283,26 @@ export default function Profile({ profile }) {
                 )}
               </a>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 mb-3">
               <a
-                href={profile.resumeUrl ? (profile.resumeUrl.includes('cloudinary') ? profile.resumeUrl.replace(/\/upload\//, '/upload/fl_inline/') : profile.resumeUrl) : '#'}
+                href={profile.resumeUrl ? (profile.resumeUrl.includes('cloudinary') ? profile.resumeUrl.replace(/\/upload\//, '/upload/pg_1/').replace(/\.pdf$/i, '.jpg') : profile.resumeUrl) : '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 rounded-lg bg-white/5 text-xs font-bold border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-all"
+                className="py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 flex items-center justify-center transition-all"
               >
-                Open
+                View
               </a>
-              <button onClick={() => resumeInputRef.current.click()} className="py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500">Update</button>
+              <button onClick={() => resumeInputRef.current.click()} className="py-2.5 rounded-lg bg-white/5 text-xs font-bold border border-white/10 text-white hover:bg-white/10 transition-all">Update</button>
             </div>
+            <a
+              href={profile.resumeUrl}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2 rounded-lg bg-white/5 text-[10px] font-bold border border-white/5 text-slate-500 flex items-center justify-center hover:text-white transition-all uppercase tracking-widest"
+            >
+              Download Original PDF
+            </a>
             <input type="file" ref={resumeInputRef} onChange={handleResumeChange} className="hidden" accept=".pdf" />
           </MotionSection>
         </div>

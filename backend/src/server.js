@@ -75,6 +75,11 @@ app.listen(PORT, async () => {
     try {
         await db.query('SELECT 1 + 1 AS result');
         console.log(`✅ Database Connected Successfully!`);
+
+        // Auto-fix schema
+        const checkSchema = require('./config/schema');
+        await checkSchema();
+
     } catch (err) {
         console.error("❌ Database Connection FAILED:", err.message);
     }

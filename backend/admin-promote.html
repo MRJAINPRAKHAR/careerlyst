@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Promotion Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔐 Admin Promotion Tool</h1>
+        <p>Promote your account to admin role on production.</p>
+
+        <input type="text" id="email" placeholder="Email Address" value="obtracker.dev.test01@gmail.com">
+        <input type="password" id="secret" placeholder="Secret Key" value="CHANGE_THIS_SECRET_KEY_12345">
+        <input type="text" id="backend" placeholder="Backend URL" value="https://careerlyst-backend.onrender.com">
+
+        <button onclick="promoteToAdmin()">Promote to Admin</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        async function promoteToAdmin() {
+            const email = document.getElementById('email').value;
+            const secret = document.getElementById('secret').value;
+            const backend = document.getElementById('backend').value;
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${backend}/api/auth/promote-to-admin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, secret })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ Success! ${data.message}<br><br>Now logout and login again to access the Admin Dashboard.`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Error: ${data.message || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}<br><br>The endpoint might not be available yet. Check Render deployment logs.`;
+            }
+
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

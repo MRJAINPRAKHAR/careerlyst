@@ -232,7 +232,8 @@ const googleLogin = async (req, res) => {
     });
   } catch (err) {
     console.error("Google Login Error:", err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    // DEBUG: Exposing full error details to frontend to diagnose production issue
+    res.status(500).json({ message: `Server Error: ${err.message}`, error: err.message });
   }
 };
 

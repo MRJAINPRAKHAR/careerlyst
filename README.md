@@ -122,6 +122,14 @@ Careerlyst is currently configured for deployment on **Render.com**.
 
 ---
 
+## 👥 Meet the Team
+This platform was built by a dedicated team of developers working to improve the job search experience:
+- **Prakhar Jain**
+- **Aniruddh Singh**
+- **Karan Kothari**
+
+---
+
 ## 🤝 Contributing
 Contributions are always welcome! Feel free to open a Pull Request or create an Issue to report bugs or suggest new features.
 

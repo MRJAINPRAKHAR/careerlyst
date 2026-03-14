@@ -45,14 +45,12 @@ cloudinary.config({
 
 console.log("> [SYS] Cloudinary Storage Initialized with Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
 
-// TEMPORARY: Using local storage due to Cloudinary 401 authentication issues
-// For production, you'll need to configure Cloudinary permissions in the dashboard
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'job-tracker/uploads',
+    resource_type: 'auto',
+    allowed_formats: ['jpeg', 'png', 'jpg', 'pdf', 'doc', 'docx']
   }
 });
 

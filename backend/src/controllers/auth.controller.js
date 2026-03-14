@@ -353,9 +353,8 @@ const updateResume = async (req, res) => {
     console.log("> [DEBUG] req.file content in updateResume:", JSON.stringify(req.file, null, 2));
     const userId = req.user.id;
 
-    // Generate proper URL for local storage
-    const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
-    const resumeUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    // Use the Cloudinary URL directly from req.file.path
+    const resumeUrl = req.file.path;
 
     console.log("> [DEBUG] Generated resume URL:", resumeUrl);
 

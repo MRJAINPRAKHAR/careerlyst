@@ -76,6 +76,10 @@ app.listen(PORT, async () => {
         await db.query('SELECT 1 + 1 AS result');
         console.log(`✅ Database Connected Successfully!`);
 
+        // Start database keep-alive to prevent Aiven free-tier hibernation
+        const { startKeepAlive } = require('./utils/dbKeepAlive');
+        startKeepAlive();
+
         // Auto-fix schema
         const checkSchema = require('./config/schema');
         await checkSchema();

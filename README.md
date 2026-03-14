@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://careerlyst.in/assets/logo.png" alt="Careerlyst Logo" width="120" />
+  <img src="frontend/public/logo.png" alt="Careerlyst Logo" width="120" />
   <h1>Careerlyst</h1>
   <p>Your Intelligent Job Tracking & Career Management Platform</p>
 

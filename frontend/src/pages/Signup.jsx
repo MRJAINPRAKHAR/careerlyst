@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReCAPTCHA from "react-google-recaptcha";
 import { api } from "../api/client";
 import { saveToken } from "../utils/auth";
-import { signInWithGoogle } from "../utils/firebase";
+import { signInWithGoogle, signInWithGoogleRedirect, getGoogleRedirectResult } from "../utils/firebase";
 
 const getPasswordStrength = (pass) => {
   let score = 0;
@@ -128,9 +128,46 @@ export default function Signup() {
     }
   };
 
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        setLoading(true);
+        const googleUser = await getGoogleRedirectResult();
+        if (googleUser) {
+          const res = await api.post("/api/auth/google-login", {
+            email: googleUser.email,
+            fullName: googleUser.displayName,
+            googleUid: googleUser.uid
+          });
+
+          saveToken(res.data.token, res.data.isOnboarded);
+
+          if (res.data.isOnboarded) {
+            navigate("/dashboard");
+          } else {
+            navigate("/onboarding");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        setErr("Google Signup Failed");
+      } finally {
+        setLoading(false);
+      }
+    };
+    handleRedirectResult();
+  }, [navigate]);
+
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
+
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithGoogleRedirect();
+        return;
+      }
+
       const googleUser = await signInWithGoogle();
 
       const res = await api.post("/api/auth/google-login", {
@@ -150,7 +187,6 @@ export default function Signup() {
     } catch (error) {
       console.error(error);
       setErr("Google Signup Failed");
-    } finally {
       setLoading(false);
     }
   };

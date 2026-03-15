@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { api } from "../api/client";
 import { saveToken } from "../utils/auth";
-import { signInWithGoogle } from "../utils/firebase";
+import { signInWithGoogle, signInWithGoogleRedirect, getGoogleRedirectResult } from "../utils/firebase";
+import { useEffect } from "react";
 import { Link } from 'react-router-dom';
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -18,10 +19,47 @@ export default function Login() {
   const [captchaVal, setCaptchaVal] = useState(null);
   const recaptchaRef = useRef(null);
 
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        setLoading(true);
+        const googleUser = await getGoogleRedirectResult();
+        if (googleUser) {
+          const res = await api.post("/api/auth/google-login", {
+            email: googleUser.email,
+            name: googleUser.displayName,
+            googleUid: googleUser.uid
+          });
+
+          saveToken(res.data.token, res.data.isOnboarded);
+
+          if (res.data.isOnboarded) {
+            navigate("/dashboard");
+          } else {
+            navigate("/onboarding");
+          }
+        }
+      } catch (error) {
+        const message = error.response?.data?.message || error.message;
+        setErr(`Login Failed: ${message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+    handleRedirectResult();
+  }, [navigate]);
+
   const handleGoogleLogin = async () => {
     try {
       setErr("");
       setLoading(true);
+      
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithGoogleRedirect();
+        return;
+      }
+      
       const googleUser = await signInWithGoogle();
       const res = await api.post("/api/auth/google-login", {
         email: googleUser.email,
@@ -40,7 +78,6 @@ export default function Login() {
     } catch (error) {
       const message = error.response?.data?.message || error.message;
       setErr(`Login Failed: ${message}`);
-    } finally {
       setLoading(false);
     }
   };

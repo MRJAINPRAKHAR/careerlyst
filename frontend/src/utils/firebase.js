@@ -1,6 +1,6 @@
 // src/utils/firebase.js
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -50,5 +50,13 @@ export const getGoogleRedirectResult = async () => {
   } catch (error) {
     console.error("Google Get Redirect Result Error:", error);
     throw error;
+  }
+};
+
+export const logoutFirebase = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Firebase signout error", error);
   }
 };

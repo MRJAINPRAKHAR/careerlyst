@@ -27,7 +27,7 @@ import ProfileComponent from "../components/dashboard/Profile";
 import AddApplicationModal from "../components/dashboard/AddApplicationModal";
 import Support from "../components/dashboard/Support";
 import Settings from "../components/dashboard/Settings";
-
+import { logoutFirebase } from "../utils/firebase";
 
 const FilterDropdownContent = ({ initialStart, initialEnd, onApply, onClose }) => {
   const [start, setStart] = useState(initialStart);
@@ -259,7 +259,8 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutFirebase();
     localStorage.clear();
     navigate("/login");
   };

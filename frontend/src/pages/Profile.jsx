@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Spline from "@splinetool/react-spline";
 import { api } from "../api/client";
 import ProfileComponent from "../components/dashboard/Profile";
+import { logoutFirebase } from "../utils/firebase";
 import {
     Linkedin,
     Mail,
@@ -79,7 +80,8 @@ export default function Profile() {
         fetchProfile();
     }, [navigate]);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutFirebase();
         localStorage.clear();
         navigate("/login");
     };

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { logoutFirebase } from "../utils/firebase";
 import Spline from '@splinetool/react-spline';
 import { api } from "../api/client";
 
@@ -323,9 +324,9 @@ export default function Onboarding() {
   };
   const prevStep = () => setStep(p => p - 1);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    await logoutFirebase();
+    localStorage.clear();
     navigate("/login");
   };
 

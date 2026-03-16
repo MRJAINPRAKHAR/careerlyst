@@ -70,8 +70,8 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, async () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', async () => {
+    console.log(`🚀 Server running on port ${PORT}`);
     try {
         await db.query('SELECT 1 + 1 AS result');
         console.log(`✅ Database Connected Successfully!`);

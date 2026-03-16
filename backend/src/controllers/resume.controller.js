@@ -58,6 +58,7 @@ const parseResume = async (req, res) => {
 
     // 4. Hybrid AI Strategy (Groq -> Gemini -> Ollama)
     let text = "";
+    let errorsCollected = [];
     const systemPrompt = `
       You are an expert HR data parser. Extract professional data from this resume text.
       Return ONLY a valid JSON object. Do not use Markdown formatting.
@@ -89,24 +90,34 @@ const parseResume = async (req, res) => {
       console.log(`> [AI] 🟢 Using Groq Cloud (Primary)`);
       text = await groqService.generateResponse(userPrompt, systemPrompt);
     } catch (groqErr) {
-      console.log(`> [AI] 🟡 Groq failed. Trying Gemini (${MODEL_NAME})...`);
+      const gErr = groqErr.response?.data?.error?.message || groqErr.message;
+      errorsCollected.push(`Groq: ${gErr}`);
+      console.log(`> [AI] 🟡 Groq failed (${gErr}). Trying Gemini (${MODEL_NAME})...`);
+      
       try {
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
         const result = await model.generateContent(systemPrompt + "\n" + userPrompt);
         const response = await result.response;
         text = response.text();
       } catch (geminiErr) {
-        console.log(`> [AI] 🔴 Gemini failed. Checking Ollama...`);
+        const gemErr = geminiErr.response?.data?.error?.message || geminiErr.message;
+        errorsCollected.push(`Gemini: ${gemErr}`);
+        console.log(`> [AI] 🔴 Gemini failed (${gemErr}). Checking Ollama...`);
+        
         try {
           const useOllama = await ollamaService.isOllamaRunning();
           if (useOllama) {
             console.log(`> [AI] 🟢 Falling back to Local Ollama`);
             text = await ollamaService.generateResponse(userPrompt, systemPrompt);
           } else {
-            throw new Error("Ollama not running");
+            errorsCollected.push(`Ollama: Not Running`);
+            throw new Error(`AI Chain Failed: ${errorsCollected.join(" | ")}`);
           }
         } catch (ollamaErr) {
-          throw new Error("All AI engines failed or offline");
+          if (!errorsCollected.find(e => e.includes("Ollama"))) {
+            errorsCollected.push(`Ollama: ${ollamaErr.message}`);
+          }
+          throw new Error(`AI Chain Failed: ${errorsCollected.join(" | ")}`);
         }
       }
     }
@@ -117,7 +128,7 @@ const parseResume = async (req, res) => {
 
     if (firstBrace === -1 || lastBrace === -1) {
       console.error("Invalid AI Output:", text);
-      throw new Error("Invalid JSON extraction from AI");
+      throw new Error(`Invalid JSON extraction from AI | Last Provider Output: ${text.substring(0,100)}...`);
     }
 
     const cleanJson = text.substring(firstBrace, lastBrace + 1);

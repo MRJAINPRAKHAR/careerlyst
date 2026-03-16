@@ -11,8 +11,7 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  if (config.data instanceof FormData) {
-    config.headers["Content-Type"] = "multipart/form-data";
-  }
+  // Axios automatically sets Content-Type to multipart/form-data + boundary when it sees a FormData instance.
+  // Manually setting it here breaks the boundary and can cause the request to fail or headers to malform.
   return config;
 });

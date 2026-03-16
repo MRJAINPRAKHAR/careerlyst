@@ -7,8 +7,8 @@ const groqService = require("../services/groq.service");
 const ollamaService = require("../services/ollama.service");
 
 // Use a stable model version
+// Use a stable model version
 const MODEL_NAME = "gemini-2.5-flash-lite";
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const parseResume = async (req, res) => {
   const startTime = Date.now();
@@ -95,12 +95,19 @@ const parseResume = async (req, res) => {
       console.log(`> [AI] 🟡 Groq failed (${gErr}). Trying Gemini (${MODEL_NAME})...`);
       
       try {
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "missing");
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
         const result = await model.generateContent(systemPrompt + "\n" + userPrompt);
         const response = await result.response;
         text = response.text();
       } catch (geminiErr) {
-        const gemErr = geminiErr.response?.data?.error?.message || geminiErr.message;
+        let gemErr = geminiErr.message;
+        if (gemErr.includes("401") || gemErr.includes("API key not valid")) {
+           gemErr = "Invalid or Missing API Key";
+        } else if (gemErr.includes("403") || gemErr.includes("Quota")) {
+           gemErr = "Quota Exceeded / Permission Denied";
+        }
+        
         errorsCollected.push(`Gemini: ${gemErr}`);
         console.log(`> [AI] 🔴 Gemini failed (${gemErr}). Checking Ollama...`);
         

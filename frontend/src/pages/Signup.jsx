@@ -136,7 +136,6 @@ export default function Signup() {
         setLoading(true);
         const googleUser = await getGoogleRedirectResult();
         if (googleUser) {
-          localStorage.removeItem('googleAuthPending');
           const res = await api.post("/api/auth/google-login", {
             email: googleUser.email,
             fullName: googleUser.displayName,
@@ -150,67 +149,17 @@ export default function Signup() {
           } else {
             navigate("/onboarding");
           }
-          return;
         }
       } catch (error) {
-        console.error(error);
-        setErr("Google Signup Failed");
-        setLoading(false);
-      }
-
-      if (localStorage.getItem('googleAuthPending') === 'true') {
-        unsubscribe = onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            try {
-              localStorage.removeItem('googleAuthPending');
-              const res = await api.post("/api/auth/google-login", {
-                email: user.email,
-                fullName: user.displayName,
-                googleUid: user.uid
-              });
-
-              saveToken(res.data.token, res.data.isOnboarded);
-
-              if (res.data.isOnboarded) {
-                navigate("/dashboard");
-              } else {
-                navigate("/onboarding");
-              }
-            } catch (error) {
-              console.error(error);
-              setErr("Google Signup Failed");
-              setLoading(false);
-            }
-          } else {
-            setTimeout(() => {
-              if (localStorage.getItem('googleAuthPending') === 'true') {
-                localStorage.removeItem('googleAuthPending');
-                setLoading(false);
-              }
-            }, 3000);
-          }
-        });
-      } else {
         setLoading(false);
       }
     };
     handleRedirectResult();
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
   }, [navigate]);
 
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        localStorage.setItem("googleAuthPending", "true");
-        await signInWithGoogleRedirect();
-        return;
-      }
 
       const googleUser = await signInWithGoogle();
 

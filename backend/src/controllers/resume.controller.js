@@ -150,7 +150,7 @@ const parseResume = async (req, res) => {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.error(`> [ERR] Failed after ${duration}s:`, error.message);
 
-    return res.status(500).json({
+    return res.status(502).json({
       message: "AI Processing Failed",
       error: error.message
     });

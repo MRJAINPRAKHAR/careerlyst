@@ -246,11 +246,14 @@ export default function Onboarding() {
         bio: parsed.summary || prev.bio
       }));
       setStep(1);
-    } catch (err) {
-      console.error("Resume Parse Error:", err);
       // Extract specific message from backend if available (e.g. "Quota exceeded")
-      const specificMsg = err.response?.data?.error || err.message;
-      setError(`Auto-Parsing Failed: ${specificMsg}. Please enter details manually.`);
+      const specificMsg = err.response?.data?.error || err.response?.data?.message || err.message;
+      const errorText = `Auto-Parsing Failed: ${specificMsg}. Please enter details manually.`;
+      
+      console.error("Resume Parse Error:", err);
+      // Alert the user explicitly so they can screenshot the *exact* backend JSON error message
+      alert(errorText);
+      setError(errorText);
       // Do NOT advance step so user can see error
     } finally {
       setLoading(false);

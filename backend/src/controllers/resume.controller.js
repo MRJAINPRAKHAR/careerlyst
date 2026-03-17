@@ -5,6 +5,14 @@ const pool = require("../config/db"); // Import DB connection
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const groqService = require("../services/groq.service");
 const ollamaService = require("../services/ollama.service");
+const cloudinary = require('cloudinary').v2;
+
+// Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Use a stable model version
 // Use a stable model version
@@ -21,30 +29,56 @@ const parseResume = async (req, res) => {
 
     console.log(`> [SYS] ${new Date().toISOString()} - Initializing PDF Extraction...`);
 
-    // --- 1.5 SAVE RESUME URL TO DB ---
     const userId = req.user.id;
-    console.log("> [DEBUG] req.file content:", JSON.stringify(req.file, null, 2));
-
-    const resumeUrl = req.file.path; // Cloudinary URL
-    if (!resumeUrl) throw new Error("Cloudinary did not return a URL");
-
-    // Update the user's profile with the resume URL immediately
-    await pool.query("UPDATE users SET resume_url = ? WHERE id = ?", [resumeUrl, userId]);
-    console.log(`> [DB] Resume URL saved for User ID: ${userId}`);
-
-    const axios = require('axios');
     let dataBuffer = null;
+    let resumeUrl = null;
 
-    if (req.file.path && req.file.path.startsWith('http')) {
-      console.log("> [DEBUG] Downloading from Cloudinary:", req.file.path);
-      const response = await axios.get(req.file.path, { responseType: 'arraybuffer' });
-      dataBuffer = Buffer.from(response.data);
+    if (req.file.buffer) {
+      console.log("> [SYS] Using Buffer from Memory Storage...");
+      dataBuffer = req.file.buffer;
+
+      // Manually upload to Cloudinary to save the URL
+      try {
+        const uploadResult = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'job-tracker/uploads',
+              resource_type: 'auto',
+              public_id: `resume_${userId}_${Date.now()}`
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(dataBuffer);
+        });
+        resumeUrl = uploadResult.secure_url;
+      } catch (uploadErr) {
+        console.error("> [ERR] Cloudinary Manual Upload Failed:", uploadErr.message);
+        // We can still proceed with parsing even if upload fails
+      }
     } else if (req.file.path) {
-      dataBuffer = fs.readFileSync(req.file.path);
+      const axios = require('axios');
+      if (req.file.path.startsWith('http')) {
+        console.log("> [DEBUG] Downloading from Cloudinary (Fallback):", req.file.path);
+        const response = await axios.get(req.file.path, { responseType: 'arraybuffer' });
+        dataBuffer = Buffer.from(response.data);
+        resumeUrl = req.file.path;
+      } else {
+        dataBuffer = fs.readFileSync(req.file.path);
+        resumeUrl = req.file.path;
+      }
     }
 
     if (!dataBuffer) {
       throw new Error("Unable to read file buffer. Upload failed.");
+    }
+
+    // Save URL to DB if we got one
+    if (resumeUrl) {
+      await pool.query("UPDATE users SET resume_url = ? WHERE id = ?", [resumeUrl, userId]);
+      console.log(`> [DB] Resume URL saved for User ID: ${userId}`);
     }
 
     // 3. Extract raw text from the buffer

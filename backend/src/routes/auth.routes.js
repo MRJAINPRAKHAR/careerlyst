@@ -59,6 +59,12 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit
 });
 
+// Memory storage for parsing (avoids 401 on download from Cloudinary)
+const memoryUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit for parsing
+});
+
 
 router.post('/register', register);
 router.post('/login', login);
@@ -74,7 +80,7 @@ router.get('/me', verifyToken, getMe);
 
 router.post('/complete-onboarding', verifyToken, completeOnboarding);
 router.post('/update-resume', verifyToken, upload.single('resume'), updateResume);
-router.post('/parse', verifyToken, upload.single('resume'), parseResume);
+router.post('/parse', verifyToken, memoryUpload.single('resume'), parseResume);
 
 
 router.post('/update-password', verifyToken, updatePassword);

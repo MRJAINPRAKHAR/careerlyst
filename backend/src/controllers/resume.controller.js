@@ -8,7 +8,7 @@ const ollamaService = require("../services/ollama.service");
 
 // Use a stable model version
 // Use a stable model version
-const MODEL_NAME = "gemini-2.5-flash-lite";
+const MODEL_NAME = "gemini-1.5-flash";
 
 const parseResume = async (req, res) => {
   const startTime = Date.now();

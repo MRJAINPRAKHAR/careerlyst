@@ -246,6 +246,7 @@ export default function Onboarding() {
         bio: parsed.summary || prev.bio
       }));
       setStep(1);
+    } catch (err) {
       // Extract specific message from backend if available (e.g. "Quota exceeded")
       const specificMsg = err.response?.data?.error || err.response?.data?.message || err.message;
       const errorText = `Auto-Parsing Failed: ${specificMsg}. Please enter details manually.`;

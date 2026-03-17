@@ -13,7 +13,8 @@ const verifyToken = (req, res, next) => {
     req.user = decoded; // Adds user id to req.user
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+    console.error("❌ [AUTH DEBUG] JWT Verification Failed:", err.message);
+    return res.status(401).json({ message: `Auth Failed: ${err.message}` });
   }
 };
 

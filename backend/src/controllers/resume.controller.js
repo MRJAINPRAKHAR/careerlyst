@@ -12,6 +12,7 @@ const MODEL_NAME = "gemini-2.5-flash";
 
 const parseResume = async (req, res) => {
   const startTime = Date.now();
+  console.log(`> [SYS] 📥 PARSE REQUEST RECEIVED for User ID: ${req.user?.id}`);
   try {
     if (!req.file) {
       console.error("> [ERR] No file received.");
